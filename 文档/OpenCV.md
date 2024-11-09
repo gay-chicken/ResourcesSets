@@ -6,16 +6,50 @@
 
 ### 1.2 图像IO
 
-**从文件读取图像**
+#### 1.2.1 从文件读取图像
 
 ```C++
 Mat cv::imread(const String &filename,
                int flags = IMREAD_COLOR)
 ```
 
+从文件中加载图像。如果图像无法读取（由于文件丢失、权限不足、格式不支持或格式无效），则函数将返回一个空矩阵（Mat::data==NULL）。
+
+**参数说明**
+
+​	**filename** ：图像文件的路径
+
+​	**flags** ：图像文件的读取方式，如灰度读取`IMREAD_GRAYSCALE`。参见[cv::ImreadModes](https://docs.opencv.org/4.0.0/d4/da8/group__imgcodecs.html#ga61d9b0126a3e57d9277ac48327799c80)
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main() {
+    Mat m1 = imread("./image/1.jpg");
+    imshow("Color", m1);
+
+    Mat m2 = imread("./image/1.jpg", IMREAD_GRAYSCALE);
+    imshow("Gray", m2);
+
+    Mat m3 = imread("./image/1.jpg", IMREAD_UNCHANGED);
+    imshow("Alpha", m3);
+
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
 
 
-**从内存读取图像**
+
+#### 1.2.2 从内存读取图像
 
 ```C++
 Mat cv::imdecode(InputArray buf,
@@ -24,7 +58,7 @@ Mat cv::imdecode(InputArray buf,
 
 
 
-**保存图像至文件**
+#### 1.2.3 保存图像至文件
 
 ```C++
 bool cv::imwrite(const String &filename,
@@ -32,9 +66,36 @@ bool cv::imwrite(const String &filename,
                  const std::vector<int> &params = std::vector<int>())
 ```
 
+将图像保存到指定的文件。图像格式根据文件名扩展名选择，一般来说，只有 8 位无符号（CV_8U）单通道或 3 通道（通道顺序为 'BGR'）图像可以使用此函数保存。
+
+**参数说明**
+
+​	**filename** ：保存的文件路径
+
+​	**img**：(Mat 或 Mat 的向量) 要保存的图像或图像。
+
+​	**flags** ：格式特定的参数编码为对 (paramId_1, paramValue_1, paramId_2, paramValue_2, ... .) 参见 [cv::ImwriteFlags](https://docs.opencv.org/4.0.0/d4/da8/group__imgcodecs.html#ga292d81be8d76901bff7988d18d2b42ac)
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main() {
+    Mat m1 = imread("./image/1.jpg");
+    imwrite("./image/1_bak.jpg", m1);
+    return 0;
+}
+```
 
 
-**保存图像至内存**
+
+#### 1.2.4 保存图像至内存
 
 ```C++
 bool cv::imencode(const String &ext,
@@ -47,7 +108,7 @@ bool cv::imencode(const String &ext,
 
 ### 1.3 绘制图形
 
-**直线**
+#### 1.3.1 直线
 
 ```C++
 void cv::line(InputOutputArray img,
@@ -59,9 +120,51 @@ void cv::line(InputOutputArray img,
               int shift = 0)
 ```
 
+在图像中绘制pt1和pt2点之间的线段，对于超出图像大小的部分会被裁剪。
+
+**参数说明**
+
+​	**img**：输入图像
+
+​	**ptr1**：线段的第一个端点
+
+​	**ptr2**：线段的第二个端点
+
+​	**color**：线段的颜色
+
+​	**thickness**：线段粗细
+
+​	**lineType**：线段类型，参见[cv::LineTypes](https://docs.opencv.org/4.0.0/d6/d6e/group__imgproc__draw.html#gaf076ef45de481ac96e0ab3dc2c29a777)
+
+​	**shift**： 点坐标中的分数位数量。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main() {
+    Mat m1 = imread("./image/1.jpg");
+    line(m1, Point(100, 100), Point(500, 500), Scalar(0, 0, 255), 4, LINE_AA);
+    imshow("InputWindow", m1);
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
+
+**运行结果**
+
+![绘制线段](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411071557929.png)
 
 
-**矩形**
+
+#### 1.3.2 矩形
 
 ```C++
 void cv::rectangle(InputOutputArray img,
@@ -73,9 +176,54 @@ void cv::rectangle(InputOutputArray img,
                    int shift = 0)
 ```
 
+绘制由pt1和pt2的两对相对顶点定义的矩形轮廓或填充矩形。
 
+**参数说明**
 
-**圆形**
+​	**img**：输入图像
+
+​	**pt1**：矩形的第一个顶点
+
+​	**pt2**：对应pt1的矩形对角线顶点
+
+​	**color**：矩形的颜色
+
+​	**thickness**：绘制矩形线条的宽度，负值表示填充图形。
+
+​	**lineType**：线的类型，参见[cv::LineTypes](https://docs.opencv.org/4.0.0/d6/d6e/group__imgproc__draw.html#gaf076ef45de481ac96e0ab3dc2c29a777)
+
+​	**shift**：点坐标中的分数位数量。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    vector<Point> pts;
+    Mat m1 = imread("./image/1.jpg");
+
+    rectangle(m1, Point(100, 100), Point(500, 500), Scalar(0, 0, 255), 3, LINE_8);
+
+    imshow("InputWindow", m1);
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
+
+**运行结果**
+
+![绘制矩形](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411071631048.png)
+
+#### 1.3.3 圆形
 
 ```C++
 void cv::circle(InputOutputArray img,
@@ -87,9 +235,53 @@ void cv::circle(InputOutputArray img,
                 int shift = 0)
 ```
 
+以给定的中心和半径绘制简单的或填充的圆。
 
+**参数说明**
 
-**椭圆**
+​	**img** ：输入图像
+
+​	**center**：圆心
+
+​	**radius**：圆半径
+
+​	**color**：圆的颜色
+
+​	**thickness**：线条宽度，负值表示填充。
+
+​	**lineType**：线的类型，参见[cv::LineTypes](https://docs.opencv.org/4.0.0/d6/d6e/group__imgproc__draw.html#gaf076ef45de481ac96e0ab3dc2c29a777)
+
+​	**shift**：点坐标中的分数位数量。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    Mat m1 = imread("./image/1.jpg");
+
+    circle(m1, Point(250, 250), 250, Scalar(0, 0, 255), 4);
+
+    imshow("InputWindow", m1);
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
+
+**运行结果**
+
+![绘制圆形](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411071640046.png)
+
+#### 1.3.4 椭圆
 
 ```C++
 void cv::ellipse(InputOutputArray img,
@@ -106,7 +298,7 @@ void cv::ellipse(InputOutputArray img,
 
 
 
-**多边形**
+#### 1.3.5 多边形
 
 ```C++
 void cv::polylines(InputOutputArray img,
@@ -118,9 +310,59 @@ void cv::polylines(InputOutputArray img,
                    int shift = 0)
 ```
 
+绘制多个多边形曲线。
 
+**参数说明**
 
-**文本**
+​	**img**：输入图像
+
+​	**pts：**多边形曲线端点
+
+​	**isClosed：**指示绘制的多边形是否闭合的标志。如果它们闭合，则从每个曲线的最后一个顶点绘制线条到其第一个顶点。
+
+​	**color**：多边形颜色。
+
+​	**thickness**：多边形边框的厚度。
+
+​	**lineType**：线条段类型，参见[LineTypes](https://docs.opencv.ac.cn/4.10.0/d6/d6e/group__imgproc__draw.html#gaf076ef45de481ac96e0ab3dc2c29a777)
+
+​	**shift：**顶点坐标中的小数位数的数量。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    vector<Point> pts;
+    Mat m1 = imread("./image/1.jpg");
+
+    pts.push_back(Point(250, 20));
+    pts.push_back(Point(500, 250));
+    pts.push_back(Point(500, 500));
+    pts.push_back(Point(250, 500));
+    pts.push_back(Point(250, 250));
+    polylines(m1, pts, true, Scalar(0, 0, 255), 2, LINE_AA);
+
+    imshow("InputWindow", m1);
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
+
+**运行结果**
+
+![绘制多边形](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411071621984.png)
+
+#### 1.3.6 文本
 
 ```C++
 void cv::putText(InputOutputArray img,
@@ -134,9 +376,52 @@ void cv::putText(InputOutputArray img,
                  bool bottomLeftOrigin = false)
 ```
 
+在图像中渲染指定的文本字符串，无法使用指定字体显示的符号由问号替换。
+**参数说明**
 
+​	**img**：输入图像
 
-**标记**
+​	**text**：进行绘制的文本字符串
+
+​	**org**：文本左下角在图像中的位置
+
+​	**fontFace**：字体类型，参见[cv::HersheyFonts](https://docs.opencv.org/4.0.0/d6/d6e/group__imgproc__draw.html#ga0f9314ea6e35f99bb23f29567fc16e11)
+
+​	**fontScale**：字体缩放因子，它乘以字体特定的基础大小
+
+​	**color**：文本颜色
+
+​	**thickness**：绘制文本的线条厚度
+
+​	**lineType**： 线条类型，参见[cv::LineTypes](https://docs.opencv.org/4.0.0/d6/d6e/group__imgproc__draw.html#gaf076ef45de481ac96e0ab3dc2c29a777)
+
+​	**bottomLeftOrigin**：当为true时，图像数据原点位于左下角。否则，在左上角。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main() {
+    Mat m1 = imread("./image/1.jpg");
+    putText(m1, "Hello, OpenCV!", Point(0, 500), FONT_HERSHEY_SIMPLEX , 1.2, Scalar(0, 0, 255), 2, LINE_AA, false);
+    imshow("InputWindow", m1);
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
+
+**运行结果**
+
+![绘制字符串](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411071615250.png)
+
+#### 1.3.7 标记
 
 ```C++
 void cv::drawMarker(InputOutputArray img,
@@ -150,7 +435,7 @@ void cv::drawMarker(InputOutputArray img,
 
 
 
-**轮廓**
+#### 1.3.7 轮廓
 
 ```C++
 void cv::drawContours(InputOutputArray image,
@@ -166,7 +451,7 @@ void cv::drawContours(InputOutputArray image,
 
 
 
-**箭头线段**
+#### 1.3.8 箭头
 
 ```C++
 void cv::arrowedLine(InputOutputArray img,
@@ -179,7 +464,47 @@ void cv::arrowedLine(InputOutputArray img,
                      double tipLength = 0.1)
 ```
 
+在图像中绘制从 pt1 到 pt2 的箭头。
 
+**参数说明**
+
+​	**img**：输入图像
+
+​	**pt1**：线段起始点
+
+​	**pt2**：线段终点
+
+​	**color**：线段颜色
+
+​	**thickness**：多边形边框的厚度。
+
+​	**lineType**：线条段类型，参见[LineTypes](https://docs.opencv.ac.cn/4.10.0/d6/d6e/group__imgproc__draw.html#gaf076ef45de481ac96e0ab3dc2c29a777)
+
+​	**shift：**顶点坐标中的小数位数的数量。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main() {
+    Mat m1 = imread("./image/1.jpg");
+    arrowedLine(m1, Point(100, 100), Point(500, 500), Scalar(0, 0, 255), 4, LINE_AA);
+    imshow("InputWindow", m1);
+    waitKey();
+    destroyAllWindows();
+    return 0;
+}
+```
+
+**运行结果**
+
+![绘制箭头](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411071647561.png)
 
 ### 1.4 修改像素
 
@@ -617,6 +942,66 @@ void cv::HoughLines(InputArray image,
                     double max_theta = CV_PI)
 ```
 
+**参数说明**
+
+​	**image**：8位单通道二值源图像。图像可能会被函数修改。
+​	**lines**：输出线段的向量。每条线由一个包含2或3个元素的向量表示 $(\rho, \theta)$ 或 $(\rho, \theta, 投票数)$。$\rho$ 是从坐标原点$(0, 0)$（图像的左上角）到线的距离。$\theta$ 是线的旋转角度（单位：弧度）（0为垂直线，$\frac{\pi}{2}$为水平线）。投票数是累加器的值。
+​	**rho**：累加器的距离分辨率，单位为像素。
+​	**theta**：累加器的角度分辨率，单位为弧度。
+​	**threshold**：累加器阈值参数。只有获得足够投票数（`>threshold`）的线段才会被返回。
+​	**srn**：对于多尺度霍夫变换，它是累加器距离分辨率 $\rho$ 的除数。粗略的累加器距离分辨率为 $\rho$，精确的累加器距离分辨率为 $\frac{\rho}{srn}$。如果`srn=0`并且`stn=0`，则使用经典的霍夫变换。否则，这两个参数都应该是正数。
+​	**stn**：对于多尺度霍夫变换，它是累加器角度分辨率θ的除数。
+​	**min_theta**：对于标准和多尺度霍夫变换，检查线段的最小角度。必须在`0`和`max_theta`之间。
+​	**max_theta**：对于标准和多尺度霍夫变换，检查线段的最大角度。必须在`min_theta`和`CV_PI`之间。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+int main()
+{
+    cv::Mat src = cv::imread("./image/7.jpg", cv::ImreadModes::IMREAD_GRAYSCALE);
+    if (src.empty())
+    {
+        std::cerr << "Not found image." << std::endl;
+        return -1;
+    }
+
+    /*
+       霍夫线检测
+     */
+    cv::Point p1(src.cols / 2, src.rows / 2), p2;
+    cv::Mat canny, edges;
+    cv::Mat dst = src.clone();
+    float lenght, angle;
+
+    cv::Canny(src, canny, 20, 50);
+    cv::HoughLines(canny, edges, 1.0, CV_PI / 180.0, 100);
+
+    // 将得到的极坐标点绘制在图像上
+    for (int i = 0; i < edges.rows; i++)
+    {
+        lenght = edges.at<float>(i, 0);
+        angle = edges.at<float>(i, 1);
+
+        p1.x = cos(angle) * lenght + 1000 * (-sin(angle));
+        p1.y = sin(angle) * lenght + 1000 * cos(angle);
+        p2.x = cos(angle) * lenght - 1000 * (-sin(angle));
+        p2.y = sin(angle) * lenght - 1000 * cos(angle);
+
+        line(dst, p1, p2, cv::Scalar(255), 1, cv::LINE_AA);
+    }
+    cv::imwrite("./image/7_Canny.jpg", canny);
+    cv::imwrite("./image/7_HoughLines.jpg", dst);
+    return 0;
+}
+```
+
+
+
 ### 8.3 霍夫圆检测
 
 ```C++
@@ -630,6 +1015,71 @@ void cv::HoughCircles(InputArray image,
                       int minRadius = 0,
                       int maxRadius = 0)
 ```
+
+**参数说明**
+
+​	**image**：8位单通道灰度输入图像。
+
+​	**circles**：输出向量，包含找到的圆。每个圆被编码为一个包含3或4个元素的浮动点向量（x, y, 半径）或（x, y, 半径, 投票数）。
+
+​	**method**：检测方法，参见 [HoughModes](https://docs.opencv.org/4.0.0/dd/d1a/group__imgproc__feature.html#ga073687a5b96ac7a3ab5802eb5510fe65)。当前实现的唯一方法是 `HOUGH_GRADIENT`。
+
+​	**dp**：累加器分辨率与图像分辨率的倒数比例。例如，如果 `dp=1`，累加器的分辨率与输入图像相同；如果 `dp=2`，累加器的宽度和高度是输入图像的一半。
+
+​	**minDist**：检测到的圆心之间的最小距离。如果这个参数设置得过小，可能会错误地检测到多个相邻的圆。如果设置得过大，可能会漏掉一些圆。
+
+​	**param1**：第一个方法特定的参数。在 `HOUGH_GRADIENT` 方法中，它是传递给 Canny 边缘检测器的两个阈值中的较高值（较低值为高值的一半）。
+
+​	**param2**：第二个方法特定的参数。在 `HOUGH_GRADIENT` 方法中，它是检测阶段用来判断圆心的累加器阈值。该值越小，可能检测到的假圆越多。累加器值较大的圆将优先返回。
+
+​	**minRadius**：最小圆的半径。
+
+​	**maxRadius**：最大圆的半径。如果 ≤ 0，使用图像的最大维度。如果 < 0，返回圆心而不查找半径。
+
+在霍夫圆检测中，需要对**param1**和**param2**进行细致的调整，不恰当的数值可能会导致无法检测到圆或错误的检测出不是圆的数据。通常设置**param1** = 200，**param2** = 100。
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+int main()
+{
+    cv::Mat src = cv::imread("./image/7.jpg", cv::ImreadModes::IMREAD_GRAYSCALE);
+    if (src.empty())
+    {
+        std::cerr << "Not found image." << std::endl;
+        return -1;
+    }
+
+    /*
+        霍夫圆检测
+    */
+    cv::Mat median, data, circle;
+    cv::Point center;
+    int radius;
+
+    cv::medianBlur(src, median, 7);
+    cv::HoughCircles(median, data, cv::HOUGH_GRADIENT, 2, median.rows/4, 200, 100);
+
+    // 绘制圆心和外圆
+    for (int i = 0; i < data.cols; i+=3)
+    {
+        center.x = static_cast<int>(data.at<float>(0, i));
+        center.y = static_cast<int>(data.at<float>(0, i+1));
+        radius = static_cast<int>(data.at<float>(0, i+2));
+
+        cv::circle(median, center, 3, cv::Scalar(128), -1, cv::LINE_AA);
+        cv::circle(median, center, radius, cv::Scalar(128), 2, cv::LINE_AA);
+    }
+    cv::imwrite("./image/7_HoughCircles.jpg", median);
+    return 0;
+}
+```
+
+
 
 ## 9、特征提取与描述
 
@@ -727,3 +1177,121 @@ static Ptr<SURF> cv::xfeatures2d::SURF::create(double hessianThreshold = 100,
 ### 9.5 Fast算法
 
 **FAST算法**（Features From Accelerated Segment Test，FAST）是一种用于角点检测的算法。FAST 角点定义为：若某像素点与周围邻域足够多的像素点处于不同区域，则该像素可能为角点。即某个像素周围拥有一定数量的像素与该像素值不同，则认为其为角点。与其他特征点相比较而言，FAST 在进行角点检测时，**计算速度更快，实时性更好**。
+
+```C++
+static Ptr<FastFeatureDetector> cv::FastFeatureDetector::create(int threshold = 10,
+                                   bool nonmaxSuppression = true,
+                                   FastFeatureDetector::DetectorType type = FastFeatureDetector::TYPE_9_16)
+```
+
+### 9.6 ORB算法
+
+ORB算法结合了Fast算法和Brief算法，提出了构造金字塔，为Fast特征点添加了方向，从而使得关键点有了尺度不变性和旋转不变性。
+
+```C++
+static Ptr<ORB> cv::ORB::create(int nfeatures = 500,
+                                float scaleFactor = 1.2f,
+                                int nlevels = 8,
+                                int edgeThreshold = 31,
+                                int firstLevel = 0,
+                                int WTA_K = 2,
+                                ORB::ScoreType scoreType = ORB::HARRIS_SCORE,
+                                int patchSize = 31,
+                                int fastThreshold = 20)
+```
+
+## 10、视频处理
+
+### 10.1 读取视频
+
+```C++
+cv::VideoCapture::VideoCapture();
+cv::VideoCapture::VideoCapture(const String &filename,
+                               int apiPreference = CAP_ANY);
+cv::VideoCapture::VideoCapture(int index,
+                               int apiPreference = CAP_ANY);
+```
+
+### 10.2 保存视频
+
+```C++
+cv::VideoWriter::VideoWriter();
+cv::VideoWriter::VideoWriter(const String &filename,
+                             int fourcc,
+                             double fps,
+                             Size frameSize,
+                             bool isColor = true);
+cv::VideoWriter::VideoWriter(const String &filename,
+                             int apiPreference,
+                             int fourcc,
+                             double fps,
+                             Size frameSize,
+                             bool isColor = true);
+```
+
+设置视频编码：
+
+```C++
+static int cv::VideoWriter::fourcc(char c1,
+                                   char c2,
+                                   char c3,
+                                   char c4);
+```
+
+### 10.3 视频追踪
+
+#### 10.3.1 meanshift算法
+
+使用一个固定大小的跟踪窗口遍历整幅图像确定目标区域，通过计算目标区域的直方图分布，找到最相似的直方图便完成了目标跟踪。
+
+```C++
+int cv::meanShift(InputArray probImage,
+                  Rect &window,
+                  TermCriteria criteria)
+```
+
+#### 10.3.2 Camshift算法
+
+Camshift算法是meanshift算法的改进版本，可根据跟踪目标的大小实时变化跟踪窗口的大小。
+
+```C++
+RotatedRect cv::CamShift(InputArray probImage,
+                         Rect &window,
+                         TermCriteria criteria)
+```
+
+## 11、机器学习
+
+### 11.1 人脸检测
+
+使用大量的正样本图像（面部图像）和负样本图像（不含面部图像）来训练分类器，从中提取Haar特征。得到图像的Haar特征后，训练一个决策树构建的adaboost级联决策器来识别是否为人脸。
+
+**实现流程**
+
+1. 读取图片，并转换为灰度图。
+
+2. 实例化人脸和眼睛检测的分类器对象
+
+   ```C++
+   cv::CascadeClassifier::CascadeClassifier();
+   cv::CascadeClassifier::CascadeClassifier(const String &filename);
+   ```
+
+3. 进行人脸和眼睛的检测
+
+   ```C++
+   virtual void cv::BaseCascadeClassifier::detectMultiScale(InputArray image,
+                                                            std::vector<Rect> &objects,
+                                                            double scaleFactor,
+                                                            int minNeighbors,
+                                                            int flags,
+                                                            Size minSize,
+                                                            Size maxSize)
+   ```
+
+   ```C++
+   virtual bool cv::BaseCascadeClassifier::load(const String &filename)
+   ```
+
+4. 显示结果图像。
+
