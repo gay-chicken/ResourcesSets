@@ -2,7 +2,50 @@
 
 ### 1.1 图像原理
 
-#### 1.1.1 色彩空间
+#### 1.1.1 色彩空间及其转换
+
+**RGB**：常用于屏幕显示
+
+**YUV**：常见于摄影机
+
++ YCbCr：也称为YCC或Y'CbCr，是一种数字信号，它包含两种形式TV range和full range。我们平时接触的绝大多数是YCbCr，ffmpeg解码出来的数据绝大多数也是这个，虽然ffmpeg里面将它的格式描述成YUV420P，实际上它是YCbCr。
++ YUV444：
+
+**RGB与其他色彩空间的转换**
+
+转换**Gray**，建议转换为进位计算：
+$$
+\begin{align*}
+\text{Gray} &= R * 0.299 + G * 0.587 + B * 0.114 \\
+			&= (R * 299 + G * 587 + B * 114) / 1000 \\
+			&\approx (R * 299 + G * 587 + B * 114 + 500) / 1000 \quad \text{(四舍五入)}
+\end{align*}
+$$
+转换**YUV**：
+$$
+\begin{array}{l}
+
+\text{Y} = 0.299 * R + 0.587 * G + 0.114 * B \\
+\text{U} = -0.14713 * R - 0.28886 * G + 0.436 * B + 128 \\
+\text{V} = 0.615 * R - 0.51498 * G - 0.10001 * B + 128 \\
+
+\end{array}
+$$
+
+
+### 1.1.2 Mat属性
+
+Mat数据存放方式(连续)：
+
+|          | col1 |      |      | col2 |      |      | col3 |      |      |
+| -------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| **row1** | 0    | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    |
+| **row2** | 9    | 10   | 11   | 12   | 13   | 14   | 15   | 16   | 17   |
+| **row3** | 18   | 19   | 20   | 21   | 22   | 23   | 24   | 25   | 26   |
+
+Mat内部有一个step，用于记录在当前行的步数，以确定何时换行。当达到该行末尾时，会重新置0。
+
+`isContinuous()`：判断存储空间是否连续。通过`step`记录。
 
 ### 1.2 图像IO
 
@@ -609,7 +652,25 @@ void cv::calcCovarMatrix(const Mat *samples,
                          int ctype = CV_64F)
 ```
 
+### 2.6 自适应阈值二值化
 
+```C++
+void cv::adaptiveThreshold(
+    InputArray src,     // 输入图像 (灰度图)
+    OutputArray dst,    // 输出图像 (二值化图)
+    double maxValue,    // 最大阈值 (大于该值的像素将被设置为 maxValue)
+    int adaptiveMethod, // 自适应阈值算法的选择 (ADAPTIVE_THRESH_MEAN_C 或 ADAPTIVE_THRESH_GAUSSIAN_C)
+    int thresholdType,  // 阈值类型 (THRESH_BINARY 或 THRESH_BINARY_INV)
+    int blockSize,      // 块大小，必须是奇数，用于计算阈值区域的大小
+    double C            // 常数 C，用于调整阈值
+);
+```
+
+`ADAPTIVE_THRESH_MEAN_C`：阈值取自相邻区域的平均值
+
+`ADAPTIVE_THRESH_GAUSSIAN_C`：阈值取自相邻区域的加权和，权重为一个高斯窗口
+
+常数 **C**：阈值就等于平均值或加权平均值减去这个常数
 
 ## 3、几何变换
 
@@ -624,6 +685,8 @@ void cv::calcCovarMatrix(const Mat *samples,
 ### 3.5 透射变换
 
 ### 3.6 图像金字塔
+
+### 3.7 图像裁剪与合并
 
 ## 4、形态学
 
@@ -928,6 +991,48 @@ void cv::matchTemplate(InputArray image,
 
 ​		![计算公式](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411051348504.png)
 
+```C++
+#include <iostream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    Mat src = imread("./image/1.jpg");
+    Mat temp = imread("./image/1_cutOut.jpg");
+    if (src.empty() || temp.empty())
+    {
+        cerr << "Not found image." << endl;
+        return -1;
+    }
+
+    Mat result;
+    double minVal, maxVal;
+    Point minPos, maxPos;
+
+    /*
+        cv::matchTemplate();
+        result是一个取值在[-1, 1]之间的结果矩阵(基于TM_CCOEFF_NORMED方法)，每个元素的值代表模板与图像中对应位置的匹配度：
+            -1: 表示完全反向匹配
+            0: 表示没有匹配
+            1: 表示完美匹配
+        因此使用minMaxLoc()在result中寻找最大值(即最佳"完美匹配")的位置即可确定模板在图像中的位置。
+    */
+    matchTemplate(src, temp, result, TM_CCOEFF_NORMED);
+    minMaxLoc(result, &minVal, &maxVal, &minPos, &maxPos);
+    rectangle(src, maxPos, Point(temp.cols + maxPos.x, temp.rows + maxPos.y), Scalar(0, 0, 255), 1, LINE_AA);
+
+    imwrite("./image/1_match_result.jpg", src);
+    return 0;
+}
+```
+
+
+
 ### 8.2 霍夫线检测
 
 ```C++
@@ -980,6 +1085,7 @@ int main()
 
     cv::Canny(src, canny, 20, 50);
     cv::HoughLines(canny, edges, 1.0, CV_PI / 180.0, 100);
+    // edges: [长度, 角度]
 
     // 将得到的极坐标点绘制在图像上
     for (int i = 0; i < edges.rows; i++)
@@ -1063,7 +1169,8 @@ int main()
 
     cv::medianBlur(src, median, 7);
     cv::HoughCircles(median, data, cv::HOUGH_GRADIENT, 2, median.rows/4, 200, 100);
-
+	// data: [x坐标, y坐标, 半径]
+    
     // 绘制圆心和外圆
     for (int i = 0; i < data.cols; i+=3)
     {
@@ -1104,6 +1211,62 @@ void cv::cornerHarris(InputArray src,
                       int borderType = BORDER_DEFAULT)
 ```
 
+```C++
+#include <iostream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    Mat src = imread("./image/7.jpg");
+    if (src.empty())
+    {
+        cerr << "Not found image." << endl;
+        return -1;
+    }
+
+/*
+    // 过于复杂
+    Mat g_img, f_img, i_img, f_dst, i_dst;
+    cvtColor(src, g_img, COLOR_BGR2GRAY);  // 转换为灰度图
+    g_img.convertTo(f_img, CV_32FC1);      // 转换为32F类型
+    cornerHarris(f_img, f_dst, 3, 3, 0.1); // Harris角检测
+
+
+    for (int i = 0; i < f_dst.rows; i++) {
+        for (int j = 0; j < f_dst.cols; j++) {
+            if (f_dst.at<float>(i, j) > 127) {
+                src.at<Vec3b>(i, j) = Vec3b(0, 0, 255);
+            }
+        }
+    }
+*/
+
+    Mat gray;
+    vector<Point2f> points;
+    // 声明迭代终止条件
+    TermCriteria termcrit(TermCriteria::COUNT | TermCriteria::EPS, 20, 0.03);
+
+    cvtColor(src, gray, COLOR_BGR2GRAY);
+    // 使用Harris算法
+    goodFeaturesToTrack(gray, points, 20, 0.01, 10, noArray(), 3, true, 0.1); // true = 'Harris corner'
+    // 优化角点结果
+    cornerSubPix(gray, points, Size(10, 10), Size(-1, -1), termcrit);
+
+    // 绘制角点
+    for (auto &it : points) {
+        circle(src, it, 3, Scalar(0, 0, 255), -1, LINE_AA);
+    }
+
+    imwrite("./image/7_cornerHarris.jpg", src);
+    return 0;
+}
+```
+
 
 
 ### 9.2 Shi-Tomas算法
@@ -1115,15 +1278,16 @@ Shi-Tomas检测算法是对Harris算法的改进，一般会得到比Harris更�
 只有当$\lambda_1$ 和$\lambda_2$ 都大于最小值时，才会被认为是角点。
 
 ```C++
-void cv::goodFeaturesToTrack(InputArray image,
-                             OutputArray corners,
-                             int maxCorners,
-                             double qualityLevel,
-                             double minDistance,
-                             InputArray mask = noArray(),
-                             int blockSize = 3,
-                             bool useHarrisDetector = false,
-                             double k = 0.04)
+void cv::goodFeaturesToTrack(InputArray image,               // 输入图像(CV_8UC1、CV_32FC1)
+                             OutputArray corners,            // 输出角点vector
+                             int maxCorners,                 // 最大角点数目
+                             double qualityLevel,            // 质量水平系数[0, 1]，通常取0.01~0.1之间
+                             double minDistance,             // 最小距离，小于此距离的角点被忽略
+                             InputArray mask = noArray(),    // mask=0的点被忽略
+                             int blockSize = 3,              // 使用的邻域数
+                             bool useHarrisDetector = false, // false = 'Shi-Tomasi'
+                             double k = 0.04                 // Harris角点检测时使用
+                            );
 ```
 
 ### 9.3 SIFT算法
@@ -1143,19 +1307,151 @@ SIFT 全名为尺度不变特征转换 (即 Scale-invariant feature transform)�
 + 信息量丰富，信息具有独特性，匹配准确。
 + 简单场景也可以产生大量 SIFT 特征。
 
-#### 9.3.2 SIFT算法步骤
-
-1. 尺度空间极值检测：搜索所有尺度上的图像位置，通过高斯差分函数来识别潜在的对尺度和旋转不变的关键点。
-2. 关键点定位：在每个候选的位置上，通过一个拟合精细的模型来确定位置和尺度。关键点的选择将依据于他们的稳定程度。
-3. 关键点方向确定：基于图像局部的梯度方向，分配给每个关键点位置一个或多个方向。所有后面的对图像数据的操作都相对于关键点的方向、尺度和位置进行交换，从而保证了对于这些变换的不变性。
-4. 关键点描述：在每个关键点周围的邻域内，在选定的尺度上测量图像局部的梯度。这些梯度作为关键点的描述符，它允许比较大的局部形状的变形或光照变化。
+**1、创建SIFT算法对象**
 
 ```C++
-static Ptr<SIFT> cv::xfeatures2d::SIFT::create(int nfeatures = 0,
-                                               int nOctaveLayers = 3,
-                                               double contrastThreshold = 0.04,
-                                               double edgeThreshold = 10,
-                                               double sigma = 1.6)
+static Ptr<SIFT> cv::SIFT::create(int nfeatures,
+                                  int nOctaveLayers,
+                                  double contrastThreshold,
+                                  double edgeThreshold,
+                                  double sigma,
+                                  int descriptorType,
+                                  bool enable_precise_upscale = false);
+```
+
+**参数说明**
+
+​	**nefatures**：需要保留的特征点的个数，特征按分数排序（分数取决于局部对比度）
+
+​	**nOctaveLayers**：每一组高斯差分金字塔的层数
+
+​	**contrastThreshold**：对比度阈值，用于过滤低对比度区域中的特征点。阈值越大，检测器产生的特征越少。
+
+​	**edgeThreshold**：用于过滤掉类似图片边界处特征的阈值(边缘效应产生的特征)
+
+​	**sigma**：第一组高斯金字塔高斯核的sigma值
+
+​	**descriptorType**：描述符类型。仅支持 CV_32F 和 CV_8U 类型。
+
+​	**enable_precise_upscale**：是否启用尺度金字塔中的精确放大，该放大将索引 $x$ 映射到 $2x$ 这样可以防止定位偏差。
+
+**2、检测特征关键点**
+
+非特殊需求建议使用`detectAndCompute()`
+
+```C++
+virtual void cv::Feature2D::detect(InputArray image,
+                                   std::vector<KeyPoint> &keypoints,
+                                   InputArray mask = noArray());
+```
+
+**参数说明**
+
+​	**image**：需要检测关键点的图片
+
+​	**keypoints**：检测到的关键点。
+
+​	**mask**：指定查找关键点的区域的掩码（可选）。它必须是一个 8 位整数矩阵，并且在感兴趣区域内的值必须为非零。
+
+**3、生成特征关键点的描述符**
+
+非特殊需求建议使用`detectAndCompute()`
+
+```C++
+virtual void cv::Feature2D::compute(InputArray image,
+                                    std::vector<KeyPoint> &keypoints,
+                                    OutputArray descriptors);
+```
+
+**参数说明**
+	**image**：需要生成描述子的图片
+
+​	**keypoints**：需要生成描述子的关键点
+
+​	**descriptors**：关键点对应的描述子
+
+```C++
+virtual void cv::Feature2D::detectAndCompute(InputArray image,
+                                             InputArray mask,
+                                             std::vector<KeyPoint> &keypoints,
+                                             OutputArray descriptors,
+                                             bool useProvidedKeypoints = false);
+```
+
+检测关键点并计算描述符。参数为上述函数的综合。
+
+**4、绘制关键点**
+
+```C++
+void cv::drawKeypoints(InputArray image,
+                       const std::vector<KeyPoint> &keypoints,
+                       InputOutputArray outImage,
+                       const Scalar &color = Scalar::all(-1),
+                       DrawMatchesFlags flags = DrawMatchesFlags::DEFAULT);
+```
+
+**参数说明**
+
+​	**image**：检测关键点的原始图像
+
+​	**keypoints**：检测到的关键点
+
+​	**outImage**：输出图像。其内容取决于 `flags` 值，定义了在输出图像中绘制的内容。请参见下方可能的标志位值。
+
+​	**color**：关键点的颜色。
+
+​	**flags**：设置绘制特征的标志。可能的标志位值由 `DrawMatchesFlags` 定义。有关详细信息，请参见 `drawMatches` 中的说明。
+
+| 值                     | 说明                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| DEFAULT                | 将创建输出图像矩阵（Mat::create），即可以重用输出图像的现有内存。两个源图像、匹配点和单个关键点将被绘制。对于每个关键点，只会绘制中心点（不包括关键点大小和方向的圆圈）。 |
+| DRAW_OVER_OUTIMG       | 输出图像矩阵将不会被创建（Mat::create）。匹配结果将绘制在输出图像的现有内容上。 |
+| NOT_DRAW_SINGLE_POINTS | 单个关键点将不会被绘制。                                     |
+| DRAW_RICH_KEYPOINTS    | 对于每个关键点，将绘制围绕关键点的圆圈，表示关键点的大小和方向。 |
+
+KeyPoint对象的属性：
+	angle: 特征点的方向，值在0-360 
+
+​	class_id: 用于聚类id,没有进行聚类时为-1 
+
+​	octave: 特征点所在的高斯金差分字塔组 
+
+​	pt: 特征点坐标 
+
+​	response: 特征点响应强度，代表了该点时特征点的程度（特征点分数排序时，会根据特征点强度） 
+
+​	size:特征点领域直径
+
+```C++
+#include <iostream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    Mat src = imread("./image/1.jpg");
+    if (src.empty())
+    {
+        cerr << "Not found image." << endl;
+        return -1;
+    }
+
+    Mat descriptors, dst;
+    vector<KeyPoint> keypoints;
+    // 1.创建SIFT对象
+    Ptr<SIFT> sift = SIFT::create();
+    // 2.计算特征点和特征描述符
+    sift->detectAndCompute(src, noArray(), keypoints, descriptors);
+    // 3.绘制特征点
+    drawKeypoints(src, keypoints, dst, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+    imwrite("./image/1_SIFT.jpg", dst);
+    return 0;
+}
 ```
 
 
@@ -1174,7 +1470,7 @@ static Ptr<SURF> cv::xfeatures2d::SURF::create(double hessianThreshold = 100,
 
 
 
-### 9.5 Fast算法
+### 9.5 Fast角点检测
 
 **FAST算法**（Features From Accelerated Segment Test，FAST）是一种用于角点检测的算法。FAST 角点定义为：若某像素点与周围邻域足够多的像素点处于不同区域，则该像素可能为角点。即某个像素周围拥有一定数量的像素与该像素值不同，则认为其为角点。与其他特征点相比较而言，FAST 在进行角点检测时，**计算速度更快，实时性更好**。
 
@@ -1186,7 +1482,7 @@ static Ptr<FastFeatureDetector> cv::FastFeatureDetector::create(int threshold = 
 
 ### 9.6 ORB算法
 
-ORB算法结合了Fast算法和Brief算法，提出了构造金字塔，为Fast特征点添加了方向，从而使得关键点有了尺度不变性和旋转不变性。
+ORB算法结合了Fast算法和Brief算法，提出了构造金字塔，为Fast特征点添加了方向，从而使得关键点有了尺度不变性和旋转不变性。ORB算法特别适合用于实时应用。
 
 ```C++
 static Ptr<ORB> cv::ORB::create(int nfeatures = 500,
@@ -1199,6 +1495,46 @@ static Ptr<ORB> cv::ORB::create(int nfeatures = 500,
                                 int patchSize = 31,
                                 int fastThreshold = 20)
 ```
+
+### 9.7 特征匹配
+
+进行特征匹配的时候需要注意，有时候无法从图像中提取出描述子，如果不对描述子进行非空检测，可能会产生以下错误（BFMatcher）：
+
+```
+terminate called after throwing an instance of 'cv::Exception'
+  what():  OpenCV(4.10.0) /home/user/Desktop/opencv/modules/core/src/batch_distance.cpp:274: error: (-215:Assertion failed) type == src2.type() && src1.cols == src2.cols && (type == CV_32F || type == CV_8U) in function 'batchDistance'
+
+Aborted (core dumped)
+```
+
+或者（FlannBasedMatcher）：
+
+```
+terminate called after throwing an instance of 'cv::Exception'
+  what():  OpenCV(4.10.0) /home/user/Desktop/opencv/modules/flann/src/miniflann.cpp:336: error: (-210:Unsupported format or combination of formats) in function 'buildIndex_'
+> type=0
+> 
+Aborted (core dumped)
+```
+
+#### BFMatcher
+
+`cv::BFMatcher` 是一种简单直接的匹配方法，主要通过计算一个特征描述子与其他描述子之间的距离，然后选择最小的匹配对。
+
+- `matcher.match()` 函数返回一个 `DMatch` 向量，表示每对匹配的描述符。
+- `matcher.knnMatch()`
+
+通过检查每个匹配的距离，找到符合条件的 "良好" 匹配。Lowe 提出的比率测试建议，如果两对匹配的距离差异过大，则认为这对匹配可能是错误的。通常，`2 * min_dist` 是一个合理的阈值。
+
+`cv::drawMatches` 用于在图像上绘制匹配的特征点，并连接目标图像和查询图像中的匹配对。
+
+
+
+#### FlannBasedMatcher
+
+`cv::FlannBasedMatcher`是一种更快的近似匹配方法，适用于大规模数据集。它使用优化的算法快速找到测试数据和训练集中的近似最近邻。
+
+### 9.8 BRIEF描述子
 
 ## 10、视频处理
 

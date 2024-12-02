@@ -278,7 +278,38 @@ auto func() -> int {
 }
 ```
 
+### std::function<>与std::bind()
 
+`std::bind()`将参数与函数绑定，返回一个`std::function<>`函数对象。
+
+```C++
+#include <functional>
+
+int add(int x, int y) {
+    return x + y;
+}
+
+int main() {
+    std::function<int()> f1 = std::bind(add, 1, 2);
+    int rs1 = f1(); // 3
+
+    std::function<int(int, int)> f2 = add;
+    int rs2 = f2(3, 5); // 8
+
+    std::function<int(int, int)> f3 = std::bind(add, std::placeholders::_1,
+                                                std::placeholders::_2);
+    int rs3 = f3(4, 8); // 12
+
+    std::function<int(int)> f4 = std::bind([](int x, int y) -> int
+                                                { return x + y; },
+                                                4,
+                                                std::placeholders::_1);
+    int rs4 = f4(1); // 5
+
+    std::function<int(int)> f5 = std::bind(add, 7, std::placeholders::_1);
+    int rs4 = f5(2); // 9
+}
+```
 
 ## 类和对象
 
@@ -771,3 +802,376 @@ int main() {
 }
 ```
 
+## 右值
+
+### 右值引用
+
+使用移动语义`std::move`和右值引用能够避免一些不必要的拷贝，从而提高性能和节省资源。
+
+```C++
+#include <vector>
+#include <iostream>
+
+// 使用左值引用
+void process_left(std::vector<int>& v) {
+    // 对 v 进行处理，但并未避免拷贝
+    std::cout << "Processing vector of size: " << v.size() << std::endl;
+}
+
+// 使用右值引用
+void process_right(std::vector<int>&& v) {
+    // 直接使用 v，避免了拷贝
+    std::cout << "Processing vector of size: " << v.size() << std::endl;
+}
+
+int main() {
+    std::vector<int> vec = {1, 2, 3, 4, 5};
+    
+    // 传递左值（拷贝）
+    process_left(vec);
+    
+    // 传递右值（移动）
+    process_right(std::move(vec));  // 使用 std::move 让 vec 成为右值
+    
+    return 0;
+}
+```
+
+### 完美转发
+
+确保在参数传递的过程中不会丢失参数的左值/右值特性
+
+```C++
+#include <iostream>
+#include <utility>  // std::forward
+
+template <typename T>
+void forward_example(T&& arg) {
+    // 完美转发
+    process(std::forward<T>(arg));
+}
+
+int main() {
+    std::vector<int> vec = {1, 2, 3};
+    forward_example(vec);  // 传递左值
+    forward_example(std::vector<int>{4, 5, 6});  // 传递右值
+    return 0;
+}
+```
+
+### 万能引用
+
+在C++11中，使用`T&&`类型的形参既能绑定左值，又能绑定右值。注意，**只有发生类型推导的时候，T&&才表示万能引用（如模板函数传参就会经过类型推导的过程）**；否则，表示右值引用
+
+```C++
+template<typename T>
+void func(T&& param) {
+    cout << param << endl;
+}
+
+int main() {
+    int num = 2019;
+    // 左值引用
+    func(num);
+    // 右值引用
+    func(2019);
+    return 0;
+}
+```
+
+### 引用折叠
+
+引用折叠是C++11中引入的一个重要特性，主要解决在模板中使用引用时出现的引用类型混乱问题。引用折叠会将多个引用类型合并为一个有效的引用类型。
+
+引用折叠规则如下：
+
+- 左值-左值 T& &
+- 左值-右值 T& &&
+- 右值-左值 T&& &
+- 右值-右值 T&& &&
+
+示例代码（有误）：
+
+```C++
+#include <iostream>
+#include <type_traits>  // std::is_lvalue_reference
+
+template <typename T>
+void check_reference(T&& arg) {
+    // 使用 std::is_lvalue_reference 判断是否为左值引用
+    std::cout << "Is lvalue reference? " << std::is_lvalue_reference<T>::value << std::endl;
+    std::cout << "Is rvalue reference? " << std::is_rvalue_reference<T>::value << std::endl;
+}
+
+int main() {
+    int x = 10;
+    int y = 20;
+
+    // 传递左值
+    std::cout << "Passing lvalue:" << std::endl;
+    check_reference(x);  // x 是左值
+
+    // 传递右值
+    std::cout << "Passing rvalue:" << std::endl;
+    check_reference(30);  // 临时数值30是右值
+
+    // 传递右值引用
+    std::cout << "Passing rvalue reference:" << std::endl;
+    int&& rvalue_ref = 40;
+    check_reference(std::move(rvalue_ref));  // std::move() 使 rvalue_ref 成为右值
+
+    return 0;
+}
+```
+
+输出结果：
+```C++
+传入左值:
+是左值? 1
+是右值? 0
+
+传入右值:
+是左值? 0
+是右值? 0
+
+传入右值引用:
+是左值? 0
+是右值? 0
+```
+
+## 运算符重载
+
+```C++
+// operator.h
+#include <iostream>
+
+#ifndef _OPERATOR_H_
+#define _OPERATOR_H_
+
+class Base
+{
+    friend std::ostream &operator<<(std::ostream &os, const Base &base);
+    friend std::istream &operator>>(std::istream &is, Base &base);
+
+public:
+    explicit Base(int i = 0) : m_i(i) {}
+
+    Base &operator=(const Base &base);          // TIPS:只能作为类成员函数进行重载
+    void operator()();                          // TIPS:只能作为类成员函数进行重载
+    Base &operator[](size_t index);             // TIPS:只能作为类成员函数进行重载
+    const Base &operator[](size_t index) const; // TIPS:只能作为类成员函数进行重载
+    Base *operator->();                         // TIPS:只能作为类成员函数进行重载
+    const Base *operator->() const;             // TIPS:只能作为类成员函数进行重载
+
+    Base &operator++();   // 前自增
+    Base &operator--();   // 前自减
+    Base operator++(int); // 后自增
+    Base operator--(int); // 后自减
+    Base operator+(const Base &base);
+    Base operator-(const Base &base);
+    // Base operator*(const Base &base); // 以下重载大同小异
+    // Base operator/(const Base &base);
+    // Base operator^(const Base &base);
+    // Base operator%(const Base &base);
+    // Base operator&(const Base &base);
+    // Base operator|(const Base &base);
+
+    explicit operator bool() const;
+    bool operator!() const;
+    bool operator==(const Base &base) const;
+    // bool operator!=(const Base &base) const; // 以下重载大同小异
+    // bool operator<(const Base &base) const;
+    // bool operator>(const Base &base) const;
+    // bool operator&&(const Base &base) const;
+    // bool operator||(const Base &base) const;
+    // bool operator<=(const Base &base) const;
+    // bool operator>=(const Base &base) const;
+
+    Base &operator+=(const Base &base);
+    Base &operator-=(const Base &base);
+    // Base &operator*=(const Base &base); // 以下重载大同小异
+    // Base &operator/=(const Base &base);
+    // Base &operator%=(const Base &base);
+    // Base &operator^=(const Base &base);
+    // Base &operator&=(const Base &base);
+    // Base &operator|=(const Base &base);
+    // Base &operator>>=(const Base &base);
+    // Base &operator<<=(const Base &base);
+
+    Base &operator~();
+    Base &operator,(Base &base) const;
+    // int operator->*(int Base::*fn)(int, int); // TIPS:用法复杂,用途狭隘
+
+    void *operator new(std::size_t size);
+    void *operator new[](std::size_t size);
+    void operator delete(void *ptr);
+    void operator delete[](void *ptr);
+
+private:
+    int m_i;
+};
+#endif // _OPERATOR_H_
+```
+
+```C++
+// operator.cpp
+#include "operator.h"
+
+std::ostream &operator<<(std::ostream &os, const Base &base)
+{
+    os << base.m_i;
+    return os;
+}
+
+std::istream &operator>>(std::istream &is, Base &base)
+{
+    is >> base.m_i;
+    return is;
+}
+
+Base &Base::operator=(const Base &base)
+{
+    if (this == &base)
+        return *this;
+
+    this->m_i = base.m_i;
+    return *this;
+}
+
+void Base::operator()()
+{
+    std::cout << "自定义函数调用运算符，包括返回值和参数" << std::endl;
+}
+
+Base &Base::operator[](size_t index)
+{
+    return (*this)[index];
+}
+
+const Base &Base::operator[](size_t index) const
+{
+    return (*this)[index];
+}
+
+Base *Base::operator->()
+{
+    return this;
+}
+
+const Base *Base::operator->() const
+{
+    return this;
+}
+
+Base &Base::operator++()
+{
+    this->m_i = this->m_i + 1;
+    return *this;
+}
+
+Base &Base::operator--()
+{
+    this->m_i = this->m_i - 1;
+    return *this;
+}
+
+Base Base::operator++(int)
+{
+    int tmp = this->m_i;
+    this->m_i = this->m_i + 1;
+    return Base(tmp);
+}
+
+Base Base::operator--(int)
+{
+    int tmp = this->m_i;
+    this->m_i = this->m_i - 1;
+    return Base(tmp);
+}
+
+Base Base::operator+(const Base &base)
+{
+    return Base(this->m_i + base.m_i);
+}
+
+Base Base::operator-(const Base &base)
+{
+    return Base(this->m_i - base.m_i);
+}
+
+bool Base::operator!() const
+{
+    return !this->m_i;
+}
+
+Base::operator bool() const
+{
+    return this->m_i != 0 ? 1 : 0;
+}
+
+bool Base::operator==(const Base &base) const
+{
+    return this->m_i == base.m_i;
+}
+
+Base &Base::operator+=(const Base &base)
+{
+    this->m_i += base.m_i;
+    return *this;
+}
+
+Base &Base::operator-=(const Base &base)
+{
+    this->m_i -= base.m_i;
+    return *this;
+}
+
+Base &Base::operator~()
+{
+    this->m_i = ~this->m_i;
+    return *this;
+}
+
+Base &Base::operator,(Base &base) const
+{
+    return base;
+}
+
+void *Base::operator new(std::size_t size)
+{
+    void *ptr = std::malloc(size);
+    if (!ptr)
+    {
+        throw std::bad_alloc();
+    }
+    return ptr;
+}
+
+void *Base::operator new[](std::size_t size)
+{
+    void *ptr = std::malloc(size);
+    if (!ptr)
+    {
+        throw std::bad_alloc();
+    }
+    return ptr;
+}
+
+void Base::operator delete(void *ptr)
+{
+    std::free(ptr);
+}
+
+void Base::operator delete[](void *ptr)
+{
+    std::free(ptr);
+}
+
+int main()
+{
+}
+```
+
+
+
+#### C++20 三路运算符<=>

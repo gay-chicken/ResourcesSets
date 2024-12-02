@@ -79,8 +79,6 @@ foo: false
 bar: false
 ```
 
-
-
 ### detach()
 
 ```C++
@@ -338,6 +336,299 @@ int main()
     std::shared_ptr<int> x = std::make_shared<int>(100);
     std::thread t1(foo, x);
     t1.join();  // 等待线程完成，内存会在 x 离开作用域后自动释放
+    return 0;
+}
+```
+
+## 二、锁
+
+### std::mutex
+
+```C++
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <mutex>
+
+int x = 0;
+std::mutex mtx;
+
+/*
+    real    0m0.008s
+    user    0m0.008s
+    sys     0m0.001s
+*/
+void low()
+{
+    mtx.lock();
+    for (int i = 0; i < 1000000; i++)
+    {
+        x++;
+    }
+    mtx.unlock();
+}
+
+/*
+    real    0m0.109s
+    user    0m0.093s
+    sys     0m0.104s
+*/
+void high()
+{
+    for (int i = 0; i < 1000000; i++)
+    {
+        mtx.lock();
+
+        x++;
+        mtx.unlock();
+    }
+}
+
+int main()
+{
+    std::thread t1(low);
+    std::thread t2(low);
+    t1.join();
+    t2.join();
+    std::cout << x << std::endl;
+    return 0;
+}
+```
+
+
+
+### std::lock_guard
+
+```C++
+/*
+lock_guard:
+    当构造函数被调用时，会自动加锁
+    当析构函数被调用时，会自动解锁
+    lock_guard对象不可复制和移动，只能在局部作用域中使用
+*/
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+std::mutex mtx;
+int shared_data = 0;
+
+void f1()
+{
+    std::lock_guard<std::mutex> lg(mtx);
+    for (int i = 0; i < 1000000; i++)
+    {
+        shared_data++;
+    }
+}
+
+void f2()
+{
+    mtx.lock();
+
+    // 已经加过锁了，无需再次加锁
+    std::lock_guard<std::mutex> lg(mtx, std::adopt_lock);
+    for (int i = 0; i < 1000000; i++)
+    {
+        shared_data++;
+    }
+}
+
+int main()
+{
+    std::thread t1(f1);
+    std::thread t2(f1);
+    t1.join();
+    t2.join();
+    std::cout << "over" << std::endl;
+    return 0;
+}
+```
+
+
+
+### std::unique_lock
+
+```C++
+/*
+std::unique_lock:
+    更灵活的锁管理
+    具有延时加锁、定时加锁、加锁尝试
+*/
+
+#include <iostream>
+#include <mutex>
+#include <thread>
+#include <chrono>
+
+std::mutex mtx;
+std::timed_mutex tmx;
+int shared_data = 0;
+
+void f1()
+{
+    std::unique_lock<std::mutex> lg(mtx);
+    for (int i = 0; i < 1000000; i++)
+    {
+        shared_data++;
+    }
+}
+
+void f2()
+{
+    std::unique_lock<std::timed_mutex> lg(tmx, std::defer_lock);
+    // 获取不到锁直接放弃后续执行
+    if (!lg.try_lock_for(std::chrono::milliseconds(50))) return;
+    
+    for (int i = 0; i < 1000000; i++)
+    {
+        shared_data++;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+int main()
+{
+    std::thread t1(f2);
+    std::thread t2(f2);
+    t1.join();
+    t2.join();
+    std::cout << shared_data << std::endl;
+    std::cout << "over" << std::endl;
+    return 0;
+}
+```
+
+### std::call_once
+
+`std::call_once`保证在多线程中只有一个线程能够执行。
+
+`std::call_once`只能在线程下运行，在main中调用会报错。
+
+```C++
+#include <iostream>
+#include <thread>
+#include <mutex>
+
+class Log
+{
+public:
+    Log() {}
+    Log(const Log &) = delete;
+    Log &operator=(const Log &) = delete;
+
+    // 懒汉单例模式
+    static Log &GetInstance()
+    {
+        static Log log;
+        return log;
+    }
+
+    void Print(std::string msg)
+    {
+        std::cout << __TIME__ << ": " << msg << std::endl;
+    }
+};
+
+void expection()
+{
+    Log::GetInstance().Print("发生错误");
+}
+
+void call() {
+    static std::once_flag once;
+    std::call_once(once, expection);
+}
+
+int main()
+{
+    std::thread t1(call);
+    std::thread t2(call);
+    t1.join();
+    t2.join();
+    return 0;
+}
+```
+
+### std::condition_variable
+
+生产者-消费者模型：
+```C++
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <string>
+#include <queue>
+#include <condition_variable>
+#include <chrono>
+
+using namespace std;
+
+queue<int> tasks;
+mutex mtx;
+condition_variable mess;
+
+void Product() {
+    for (int i = 0; i < 100; i++) {
+        unique_lock<mutex> lock(mtx);
+        tasks.push(i);
+        mess.notify_one();
+        cout << "Product: " << i << endl;
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
+}
+
+void Consumer() {
+    while(true) {
+        unique_lock<mutex> lock(mtx);
+
+        mess.wait(lock, []() -> bool {
+            return !tasks.empty();
+        });
+        int value = tasks.front();
+        tasks.pop();
+        cout << "Consumer: " << value << endl;
+        this_thread::sleep_for(chrono::milliseconds(5));
+    }
+}
+
+int main() {
+    thread t1(Product);
+    thread t2(Consumer);
+    t1.join();
+    t2.join();
+    cout << "over" << endl;
+    return 0;
+}
+```
+
+
+
+### std::barrier
+
+`std::barrier`是C++20中引入的一项用于同步线程任务的特性。它允许多个线程在同一个特定的同步点上相互等待，简单来说就是在线程任务中设置一个阻塞点，所有到达该点的线程都会被阻塞，直到所有线程都到达该任务点才会继续往下执行。
+
+```C++
+#include <barrier>
+#include <thread>
+#include <iostream>
+#include <mutex>
+
+using namespace std;
+
+barrier b(2);
+
+void foo() {
+    auto tid = this_thread::get_id();
+    cout << "thread " << tid << " enter" <<  << endl;
+    b.arrive_and_wait();
+    cout << "thread " << tid << " out" <<  << endl;
+}
+
+int main() {
+    thread t1(foo);
+    thread t2(foo);
+    cout << "over" << endl;
     return 0;
 }
 ```
