@@ -6,7 +6,7 @@ using namespace cv;
 
 int main()
 {
-    Mat src = imread("./image/3.jpg");
+    Mat src = imread("./image/2.jpg");
     if (src.empty()) {
         cerr << "Not found image." << endl;
         return -1;
@@ -16,7 +16,7 @@ int main()
 
     // Canny边缘检测
     Canny(src, dst, 10, 50);
-    imwrite("./out/3_Canny.jpg", dst);
+    imwrite("./out/2_Canny.jpg", dst);
 
     return 0;
 }
