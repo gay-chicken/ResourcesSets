@@ -751,9 +751,9 @@ void cv::morphologyEx(InputArray src,
 
 #### 5.2.1 线性滤波
 
-​    **均值滤波**
+**均值滤波**
 
-​    通过计算邻域像素的平均值来平滑图像，适合去除高斯噪声。
+通过计算邻域像素的平均值来平滑图像，适合去除高斯噪声。
 
 ```C++
 void cv::blur(InputArray src,
@@ -763,44 +763,82 @@ void cv::blur(InputArray src,
               int borderType = BORDER_DEFAULT)
 ```
 
-
-
-​    **高斯滤波**
-
-​    使用高斯函数加权邻域像素，效果更平滑，保留边缘特征。
+**方盒滤波**
 
 ```C++
-void cv::GaussianBlur(InputArray src,
-                      OutputArray dst,
-                      Size ksize,
-                      double sigmaX,
-                      double sigmaY = 0,
-                      int borderType = BORDER_DEFAULT)
+void cv::boxFilter(InputArray src,                  // 源图像
+                   OutputArray dst,                 // 输出图像
+                   int ddepth,                      // 位深
+                   Size ksize,                      // 卷积核大小
+                   Point anchor = Point(-1, -1),    // 卷积核中心点
+                   bool normalize = true,           // 标准化
+                   int borderType = BORDER_DEFAULT) // 边界类型
+```
+
+方盒滤波卷积核：
+$$
+K = a \cdot \begin{bmatrix}
+1 & 1 & 1 & \cdots & 1 \\
+1 & 1 & 1 & \cdots & 1 \\
+1 & 1 & 1 & \cdots & 1 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & 1 & 1 & \cdots & 1
+\end{bmatrix}
+$$
+在不同情况下，$a$ 有不同取值：
+
++ 参数``normalize`` = true时，$a = \frac{1}{W \times H}$ 其中 $W$ 和 $H$ 是矩阵的宽和高。在此情况下，方盒滤波会退化为均值滤波。
++ 参数``normalize`` = false时，$a = 1$。
+
+由于方盒滤波与均值滤波的高度相似性，通常在使用时都是使用均值滤波。
+
+**高斯滤波**
+
+使用高斯函数加权邻域像素，效果更平滑，保留边缘特征。主要用于消除**高斯噪声**。
+
+```C++
+void cv::GaussianBlur(InputArray src,                  // 源图像
+                      OutputArray dst,                 // 输出图像
+                      Size ksize,                      // 卷积核大小
+                      double sigmaX,                   // 横坐标上与中心点的最大差值
+                      double sigmaY = 0,               // 纵坐标上与中心点的最大差值
+                      int borderType = BORDER_DEFAULT) // 边界类型
 ```
 
 
 
 #### 5.2.2 非线性滤波
 
-​    **中值滤波**
+**中值滤波**
 
-​    通过取邻域像素的中值来替代中心像素，有效去除尖锐噪声。
+对卷积核内的元素进行升序排序，取排序后的中值作为卷积后的结果值。中值滤波对消除**椒盐噪声**效果明显。
 
 ```C++
-void cv::medianBlur(InputArray src,
-                    OutputArray dst,
-                    int ksize)
+void cv::medianBlur(InputArray src,  // 源图像
+                    OutputArray dst, // 输出图像
+                    int ksize)       // 卷积核大小
+```
+
+**双边滤波**
+
+处理色彩突变值，能够**平滑图像**的同时**保留边缘**。双边滤波的作用是**进行美颜**。
+
+```C++
+void cv::bilateralFilter(InputArray src,                  // 源图像
+                         OutputArray dst,                 // 输出图像
+                         int d,                           // 邻域大小
+                         double sigmaColor,               // 色彩突变阈值
+                         double sigmaSpace,               // 像素平滑范围
+                         int borderType = BORDER_DEFAULT) // 边界类型
 ```
 
 
 
-​    **双边滤波**
-
-​    同时考虑空间距离和像素值差异，能够平滑图像同时保留边缘。
-
 #### 5.2.3 频域滤波
 
-​    **傅里叶变换**
+
+
+   **傅里叶变换**
 
 ​    通过傅里叶变换将图像转换到频域，使用滤波器（如低通、高通滤波器）处理，然后反变换回空间域。
 
@@ -901,97 +939,6 @@ Ptr<CLAHE> cv::createCLAHE(double clipLimit = 40.0,
 virtual void cv::CLAHE::apply(InputArray src,
                               OutputArray dst)
 ```
-
-
-
-## 7、边缘检测
-
-### 7.1 Sobel检测算子
-
-Sobel边缘检测算法比较简单，检测效率也比较高，但是其边缘检测的准确率较差。尽管如此，在大多数实际应用场景中还是首选Sobel算法。Sobel算子是高斯平滑与微分操作的结合体，所以其抗噪声能力很强，用途较多。尤其效率要求较高，对图像细节不需要太过注重的场景。
-
-```C++
-void cv::Sobel(InputArray src,
-               OutputArray dst,
-               int ddepth,
-               int dx,
-               int dy,
-               int ksize = 3,
-               double scale = 1,
-               double delta = 0,
-               int borderType = BORDER_DEFAULT)
-```
-
-$$
-计算公式...
-$$
-
-![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050545753.jpg)
-
-![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050545662.jpg)
-
-### 7.2 Scharr算子
-
-当Sobel算子的内核为3时，可能会产生比较明显的误差，为解决这一问题，可以使用Scharr算法，但是该算法仅作用于大小为3的内核。该算法与Sobel算法具有一样的效率，但是结果更加精确。
-
-```C++
-void cv::Scharr(InputArray src,
-                OutputArray dst,
-                int ddepth,
-                int dx,
-                int dy,
-                double scale = 1,
-                double delta = 0,
-                int borderType = BORDER_DEFAULT)
-```
-
-### 7.3 Laplacian算子
-
-![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050608337.jpg)
-
-```C++
-void cv::Laplacian(InputArray src,
-                   OutputArray dst,
-                   int ddepth,
-                   int ksize = 1,
-                   double scale = 1,
-                   double delta = 0,
-                   int borderType = BORDER_DEFAULT)
-```
-
-
-
-### 7.4 Canny边缘检测
-
-![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050616710.jpg)
-
-![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050617962.jpg)
-
-![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050617784.jpg)
-
-```C++
-void cv::Canny(InputArray image,
-               OutputArray edges,
-               double threshold1,
-               double threshold2,
-               int apertureSize = 3,
-               bool L2gradient = false)
-```
-
-
-
-### 7.5 算子比较
-
-| 算子      | 优点                                                         | 缺点                                                         |
-| --------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Roberts   | ①计算速度非常快，特别适合实时处理。②能够检测到较为精确的边缘。 | ①对噪声非常敏感，容易产生伪边缘。 ②由于窗口较小，可能无法捕捉到较大区域的边缘信息。③边缘较粗，边缘定位不够准确 |
-| Sobel     | ①容易实现，计算量较小。 ②能够有效地检测到边缘，尤其是图像中的垂直和水平边缘。 ③对噪声具有一定的抑制作用，因为它是一个加权平均操作。 | ①对角线边缘的检测效果较差。 ②对噪声相对敏感，可能导致噪声点也被当作边缘检测出来。 |
-| Kirsch    | ①在捕捉方向性边缘时更加有效。②能够识别复杂背景或噪声较大的图像边缘。③原理简单，实现容易。④能够捕捉方向性特征。 | ①对噪声比较敏感。②计算量大，处理时间长。③边缘定位不准确。④处理结果不平滑。 |
-| Prewitt   | ①计算简单，类似Sobel算子。②对噪声有一定抑制作用。            | ①与Sobel算子类似，对角线边缘的检测效果差。 ②对噪声的敏感性较高。 |
-| Laplacian | ①可以检测到边缘的细节，适用于轮廓检测。②较为简单且不需要多个参数调整。 | ①对噪声非常敏感，容易检测到噪声。②对于边缘方向没有明确的选择性。③可能会产生较为模糊的边缘。 |
-| LoG       | ①能够有效去除高频噪声。②对复杂图像中的细节也能够较好的识别。③可以在不同尺度下检测到不同大小的边缘 | ①可能会产生一些虚假的边缘或检测到不连续的边缘。②对噪声比较敏感。③计算量大，速度慢。④受传入的参数影响，不合适的参数会导致边缘不够清晰。 |
-| Canny     | ①边缘检测效果非常好，能检测到细小的边缘。②能有效去除噪声。③对边缘的定位精度较高。 | ①计算量较大，速度较慢。②对于某些复杂背景下的图像，可能会出现误检。 |
-| Scharr    | ①较Sobel算子对噪声的抑制效果更好，检测结果更平滑。②对边缘的精确定位比Sobel算子更为精确。 | ①计算复杂度较Sobel算子略高。②对于某些图像可能过度平滑，导致边缘细节丢失。 |
 
 ## 8、模板匹配和霍夫变换
 
@@ -1669,8 +1616,172 @@ RotatedRect cv::CamShift(InputArray probImage,
 
 ## 目标检测
 
+### Sobel（索贝尔）算子
+
+Sobel边缘检测算法比较简单，检测效率也比较高，但是其边缘检测的准确率较差。尽管如此，在大多数实际应用场景中还是首选Sobel算法。Sobel算子是高斯平滑与微分操作的结合体，所以其抗噪声能力很强，用途较多。尤其效率要求较高，对图像细节不需要太过注重的场景。
+
++ 先向x方向求导
++ 然后在y方向求导
++ 最终结果：$|G| = |G_x'| + |G_y'|$
+
+对色彩变化较大的边缘提取效果明显，如提取文字。
+
+ ```C++
+void cv::Sobel(InputArray src,                  // 输入图像
+               OutputArray dst,                 // 输出图像
+               int ddepth,                      // 位深 CV_8U/CV_16S/CV_32F...
+               int dx,                          // 沿 x 轴方向的导数阶数，dx=1 表示计算一阶导数
+               int dy,                          // 沿 y 轴方向的导数阶数，dy=1 表示计算一阶导数
+               int ksize = 3,                   // 卷积核大小
+               double scale = 1,                // 缩放比例
+               double delta = 0,                // 结果增加delta值
+               int borderType = BORDER_DEFAULT) // 边界类型
+ ```
+
+注意，``Sobel``不要同时计算``dx``和``dy``的梯度（效果非常差！），仅能在x或y方向选择一个方向进行计算，然后通过梯度合成函数``magnitude``合并两个梯度图。
+
+当``ksize`` = -1时，**Sobel算子**会变成**Scharr算子**。
+
+### Scharr（沙尔）算子
+
+当Sobel算子的内核为3时，可能会产生比较明显的误差，为解决这一问题，可以使用Scharr算法，但是该算法仅作用于大小为3的内核。该算法与Sobel算法具有一样的效率，但是结果更加精确。
+
++ Scharr算子与Sobel算子类似，只是使用的卷积核的值不同，因此应用范围更少。
+
++ Scharr只能求x或y方向的边缘，不能同时求两个方向（报错！）
++ Scharr是Sobel的一种免于专利保护的替代方案，由于Sobel专利已过期Scharr不再重要。
+
+```C++
+void cv::Scharr(InputArray src,                  // 输入图像
+                OutputArray dst,                 // 输出图像
+                int ddepth,                      // 位深
+                int dx,                          // 沿 x 轴方向的导数阶数
+                int dy,                          // 沿 y 轴方向的导数阶数
+                double scale = 1,                // 缩放比例
+                double delta = 0,                // 结果增加delta值
+                int borderType = BORDER_DEFAULT) // 边界类型
+```
+
+
+
+### Laplacian（拉普拉斯）算子
+
++ 可以同时求两个方向的边缘
++ 对噪音敏感，需要先去噪再使用拉普拉斯算子
+
+![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050608337.jpg)
+
+```C++
+void cv::Laplacian(InputArray src,                  // 输入图像
+                   OutputArray dst,                 // 输出图像
+                   int ddepth,                      // 位深
+                   int ksize = 1,                   // 卷积核大小
+                   double scale = 1,                // 缩放比例
+                   double delta = 0,                // 增加的伽马值
+                   int borderType = BORDER_DEFAULT) // 边界类型
+```
+
+**算子比较**
+
+| 算子      | 优点                                                         | 缺点                                                         |
+| --------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Roberts   | ①计算速度非常快，特别适合实时处理。②能够检测到较为精确的边缘。 | ①对噪声非常敏感，容易产生伪边缘。 ②由于窗口较小，可能无法捕捉到较大区域的边缘信息。③边缘较粗，边缘定位不够准确 |
+| Sobel     | ①容易实现，计算量较小。 ②能够有效地检测到边缘，尤其是图像中的垂直和水平边缘。 ③对噪声具有一定的抑制作用，因为它是一个加权平均操作。 | ①对角线边缘的检测效果较差。 ②对噪声相对敏感，可能导致噪声点也被当作边缘检测出来。 |
+| Kirsch    | ①在捕捉方向性边缘时更加有效。②能够识别复杂背景或噪声较大的图像边缘。③原理简单，实现容易。④能够捕捉方向性特征。 | ①对噪声比较敏感。②计算量大，处理时间长。③边缘定位不准确。④处理结果不平滑。 |
+| Prewitt   | ①计算简单，类似Sobel算子。②对噪声有一定抑制作用。            | ①与Sobel算子类似，对角线边缘的检测效果差。 ②对噪声的敏感性较高。 |
+| Laplacian | ①可以检测到边缘的细节，适用于轮廓检测。②较为简单且不需要多个参数调整。 | ①对噪声非常敏感，容易检测到噪声。②对于边缘方向没有明确的选择性。③可能会产生较为模糊的边缘。 |
+| LoG       | ①能够有效去除高频噪声。②对复杂图像中的细节也能够较好的识别。③可以在不同尺度下检测到不同大小的边缘 | ①可能会产生一些虚假的边缘或检测到不连续的边缘。②对噪声比较敏感。③计算量大，速度慢。④受传入的参数影响，不合适的参数会导致边缘不够清晰。 |
+| Canny     | ①边缘检测效果非常好，能检测到细小的边缘。②能有效去除噪声。③对边缘的定位精度较高。 | ①计算量较大，速度较慢。②对于某些复杂背景下的图像，可能会出现误检。 |
+| Scharr    | ①较Sobel算子对噪声的抑制效果更好，检测结果更平滑。②对边缘的精确定位比Sobel算子更为精确。 | ①计算复杂度较Sobel算子略高。②对于某些图像可能过度平滑，导致边缘细节丢失。 |
+
+**示例代码**
+
+```C++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+using namespace cv;
+using namespace std;
+
+int main()
+{
+    Mat src = imread("./image/1.jpg");
+    if (src.empty())
+    {
+        cerr << "Not found image." << endl;
+        return -1;
+    }
+
+    Mat dst;
+
+    // 均值滤波
+    blur(src, dst, Size(5, 5));
+    imwrite("./out/1_blur.jpg", dst);
+
+    // 高斯滤波
+    GaussianBlur(src, dst, Size(5, 5), 0.7);
+    imwrite("./out/1_GaussianBlur.jpg", dst);
+
+    // 中值滤波
+    medianBlur(src, dst, 5);
+    imwrite("./out/1_medianBlur.jpg", dst);
+
+    // 双边滤波
+    bilateralFilter(src, dst, 5, 20, 30);
+    imwrite("./out/1_bilateralFilter.jpg", dst);
+
+    // Sobel高通滤波
+    Mat m1, m2, m3;
+    Sobel(src, m1, CV_32F, 1, 0); // ∂x
+    Sobel(src, m2, CV_32F, 0, 1); // ∂y
+    magnitude(m1, m2, m3);      // 梯度合并
+    // dst = m1 + m2;
+    imwrite("./out/1_Sobel.jpg", m3);
+
+    // Scharr高通滤波
+    Scharr(src, m1, CV_32F, 1, 0);
+    Scharr(src, m2, CV_32F, 0, 1);
+    magnitude(m1, m2, m3);
+    // dst = m1 + m2;
+    imwrite("./out/1_Scharr.jpg", m3);
+
+    // Laplacian算子
+    Laplacian(src, dst, CV_8U);
+    imwrite("./out/1_Laplacian.jpg", dst);
+}
+```
+
+
+
+### Canny边缘检测
+
+Canny边缘检测使用两个阈值作为边缘的判断。当值小于低阈值时，判定该值不是边缘；当值大于高阈值时，判定为边缘点；当大于低阈值但小于高阈值时，处于边缘点邻域的值被认为是边缘，不处于任何边缘的邻域的值不属于边缘。
+
++ 使用 $5 \times 5$高斯滤波降噪
++ 计算梯度方向（0°/45°/90°/135°）
++ 在这四个梯度方向上取局部最大值
++ 使用最大值进行阈值计算
+
+![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050616710.jpg)
+
+![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050617962.jpg)
+
+![](https://raw.githubusercontent.com/gay-chicken/ResourcesSets/main/%E5%9B%BE%E7%89%87/202411050617784.jpg)
+
+```C++
+void cv::Canny(InputArray image,        // 灰度图像
+               OutputArray edges,       // 输出图像
+               double threshold1,       // 低阈值。
+               double threshold2,       // 高阈值。
+               int apertureSize = 3,    // Sobel 算子的大小
+               bool L2gradient = false) // true: sqrt(dx^2 + dy^2), false: |dx| + |dy|
+```
+
+
+
 ## 图像分割
 
 ## 人脸检测
 
 ## 图像处理
+
