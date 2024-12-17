@@ -30,7 +30,6 @@ void drawNumber(cv::InputOutputArray src, std::vector<cv::Point> points) {
     for (size_t i = 0; i < points.size(); ++i) {
         circle(src, points[i], 3, Scalar(0, 0, 255), -1, LINE_AA);
         putText(src, to_string(i), points[i], FONT_HERSHEY_PLAIN, 0.75, Scalar(0, 255, 0));
-
     }
 }
 
