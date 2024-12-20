@@ -1612,6 +1612,39 @@ RotatedRect cv::CamShift(InputArray probImage,
 
 ## 图像变换
 
+### 单应性矩阵
+
+单应性矩阵描述了一个平面到另一个平面的映射关系，通常用于图像配准、图像拼接、投影变换等任务。
+
+```C++
+cv::Mat cv::findHomography(
+    InputArray srcPoints,               // 输入点集（源图像中的点）
+    InputArray dstPoints,               // 输入点集（目标图像中的点）
+    int method = 0,                     // 方法，用于计算单应性矩阵（可以选择不同的算法）
+    double ransacReprojThreshold = 3.0, // RANSAC 算法的重投影误差阈值
+    OutputArray mask = noArray()        // 输出遮罩，指示哪些点是内点（如果使用 RANSAC）
+);
+```
+
+### 参数说明
+
+1. **`srcPoints`**：源图像中的点集，通常是一个包含至少 4 个点的 `cv::Mat` 或 `std::vector<cv::Point2f>`，类型为 `CV_32F` 或 `CV_64F`。
+
+2. **`dstPoints`**：目标图像中的点集，与源图像中的点一一对应，类型和 `srcPoints` 相同。
+
+3. `method`：计算单应性矩阵的方法：
+   - `0`（默认值）：标准的最小二乘法。
+   - `RANSAC`：使用 RANSAC 算法，可以处理包含外点的情况，`ransacReprojThreshold` 参数定义了外点的阈值。
+   - `LMEDS`：使用最小中值平方算法（Least Median of Squares），适用于大比例外点的场景。
+   
+4. **`ransacReprojThreshold`**：当使用 `RANSAC` 时，这是一个阈值，用于确定一个点是否是外点，单位是像素。只有那些重投影误差小于该阈值的点才被认为是内点。
+
+5. **`mask`**：输出的遮罩图像，标识哪些点是内点（有效的匹配点），这些点会被用于计算单应性矩阵。返回值是一个 `Mat`，值为 1 表示内点，0 表示外点。
+
+### 返回值
+
+返回一个 `3x3` 的单应性矩阵（`cv::Mat`）。这个矩阵表示了从源图像到目标图像的透视变换。
+
 ## 特征提取
 
 ## 目标检测
