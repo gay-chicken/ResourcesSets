@@ -24,29 +24,29 @@ int main()
 
     // 使用BFMatcher进行描述符匹配
     BFMatcher matcher(NORM_L2);
-    vector<DMatch> matches, good_matches;
+    vector<DMatch> matches;
     matcher.match(desc1, desc2, matches);
 
-    // 计算距离的中位数
-    vector<double> distances;
-    for (const auto& match : matches) {
-        distances.push_back(match.distance);
-    }
-    sort(distances.begin(), distances.end());
-    double median_dist = distances[distances.size() / 2];
-
-
-    // 使用中位数的两倍作为阈值
-    for (const auto& match : matches) {
-        if (match.distance <= 2 * median_dist) {
-            good_matches.push_back(match);
+    // 过滤特征点
+    vector<DMatch> good_matches;
+    for (size_t i = 0; i < matches.size() - 1; i++)
+    {
+        if (matches[i].distance < (matches[i + 1].distance * 0.8))
+        {
+            good_matches.push_back(matches[i]);
         }
     }
-    cout << "origin matches: " << matches.size() << ", good matches: " << good_matches.size() << endl;
 
-    // ===== 调试输出 =====
-    Mat res;
-    drawMatches(src1, kp1, src2, kp2, good_matches, res);
-    imwrite("./out/7&8_good_matches.jpg", res); // 存在一块无关区域具有大量特征点
+    vector<Point2f> pts1, pts2;
+    for (size_t i = 0; i < good_matches.size(); i++)
+    {
+        pts1.push_back(kp1[good_matches[i].queryIdx].pt);
+        pts2.push_back(kp2[good_matches[i].trainIdx].pt);
+    }
+
+    Mat dst, mask;
+    Mat H = findHomography(pts1, pts2, RANSAC, 5.0, mask);
+    cout << H << endl;
+
     return 0;
 }
