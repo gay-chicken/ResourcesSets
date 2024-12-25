@@ -56,5 +56,5 @@ int main() {
     warpPerspective(left2, result, H, Size(left2.cols + right2.cols, left2.rows));
     Mat half(result, Rect(0, 0, right2.cols, right2.rows));
     right2.copyTo(half);
-    imwrite("./out/result.jpg", half`);
+    imwrite("./out/result.jpg", half);
 }
