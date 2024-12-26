@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 
 int main() {
-    CascadeClassifier faceCascade("/usr/local/share/opencv4/haarcascades/haarcascade_frontalface_default.xml");
+    CascadeClassifier faceCascade("./model/haarcascade_frontalface_default.xml");
     if (faceCascade.empty()) {
         cerr << "Error: Could not load Haar cascade classifier!" << endl;
         return -1;

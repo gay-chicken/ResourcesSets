@@ -6,12 +6,14 @@
 
 #define VK_U 0x55
 #define VK_I 0x49
+#define VK_J 0x4A
+#define VK_L 0x4C
 
 std::atomic<bool> running(false);
 
 void softAttack();
 void missRoll();
-
+void heavAttack();
 /**
  * 调用对应方法处理键码。
  *
@@ -23,11 +25,48 @@ void handleIdle(int vkCode) {
         if (running) {
             std::thread(missRoll).detach();
         }
-    } else if (vkCode == VK_I) {
-        running = !running;
-        if (running) {
-            std::thread(softAttack).detach();
-        }
+    }
+    //  else if (vkCode == VK_I) {
+    //     running = !running;
+    //     if (running) {
+    //         std::thread(softAttack).detach();
+    //     }
+    // } else if (vkCode == VK_L) {
+    //     running = !running;
+    //     if (running) {
+    //         std::thread(heavAttack).detach();
+    //     }
+    // }
+}
+
+/**
+ * 当按下L键后，先按J键，等待x毫秒后再按L Shift键
+ */
+void heavAttack() {
+    while (running) {
+        INPUT input[2];
+
+        input[0].type = INPUT_KEYBOARD;
+        input[0].ki.wScan = MapVirtualKey(VK_J, MAPVK_VK_TO_VSC);
+        input[0].ki.dwFlags = KEYEVENTF_SCANCODE;
+
+        input[1].type = INPUT_KEYBOARD;
+        input[1].ki.wScan = MapVirtualKey(VK_J, MAPVK_VK_TO_VSC);
+        input[1].ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+
+        SendInput(2, input, sizeof(INPUT));
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+        input[0].type = INPUT_KEYBOARD;
+        input[0].ki.wScan = MapVirtualKey(VK_LSHIFT, MAPVK_VK_TO_VSC);
+        input[0].ki.dwFlags = KEYEVENTF_SCANCODE;
+
+        input[1].type = INPUT_KEYBOARD;
+        input[1].ki.wScan = MapVirtualKey(VK_LSHIFT, MAPVK_VK_TO_VSC);
+        input[1].ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+
+        SendInput(2, input, sizeof(INPUT));
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 }
 
