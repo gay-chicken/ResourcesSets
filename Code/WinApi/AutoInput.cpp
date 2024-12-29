@@ -1,8 +1,8 @@
-#include <windows.h>
-#include <thread>
-#include <functional>
 #include <atomic>
+#include <functional>
 #include <iostream>
+#include <thread>
+#include <windows.h>
 
 #define VK_U 0x55
 #define VK_I 0x49
@@ -19,7 +19,8 @@ void heavAttack();
  *
  * 能够保证按键的连续按下和释放不会导致多次调用。但是每次按下都会创建一个线程，开销较大。
  */
-void handleIdle(int vkCode) {
+void handleIdle(int vkCode)
+{
     if (vkCode == VK_U) {
         running = !running;
         if (running) {
@@ -31,18 +32,20 @@ void handleIdle(int vkCode) {
     //     if (running) {
     //         std::thread(softAttack).detach();
     //     }
-    // } else if (vkCode == VK_L) {
-    //     running = !running;
-    //     if (running) {
-    //         std::thread(heavAttack).detach();
-    //     }
     // }
+    else if (vkCode == VK_L) {
+        running = !running;
+        if (running) {
+            std::thread(heavAttack).detach();
+        }
+    }
 }
 
 /**
  * 当按下L键后，先按J键，等待x毫秒后再按L Shift键
  */
-void heavAttack() {
+void heavAttack()
+{
     while (running) {
         INPUT input[2];
 
@@ -73,7 +76,8 @@ void heavAttack() {
 /**
  * 当按下I键后，模拟鼠标左键按下100毫秒,完成贯注轻攻击动作，再次按下I键可解除。
  */
-void softAttack() {
+void softAttack()
+{
     while (running) {
         // 创建一个INPUT结构体来模拟鼠标左键按下
         INPUT input[2];
@@ -101,10 +105,11 @@ void softAttack() {
 /**
  * 当按下U键后，模拟按下空格键和鼠标左键，完成躲闪翻滚动作，再次按下U键可解除。
  */
-void missRoll() {
+void missRoll()
+{
     while (running) {
         // 创建一个INPUT结构体来模拟按键
-        INPUT input[4] = {0};
+        INPUT input[4] = { 0 };
 
         // 模拟按下空格键（使用扫描码）
         input[0].type = INPUT_KEYBOARD;
@@ -136,9 +141,10 @@ void missRoll() {
     }
 }
 
-LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
     if (nCode == HC_ACTION) {
-        KBDLLHOOKSTRUCT *pKeyBoard = (KBDLLHOOKSTRUCT *)lParam;
+        KBDLLHOOKSTRUCT* pKeyBoard = (KBDLLHOOKSTRUCT*)lParam;
         if (wParam == WM_KEYDOWN) {
             handleIdle(pKeyBoard->vkCode);
         }
@@ -146,7 +152,8 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-int main() {
+int main()
+{
     HHOOK hhkLowLevelKybd = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
