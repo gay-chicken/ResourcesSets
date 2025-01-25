@@ -1,0 +1,3 @@
+D:/Desktop/ResourcesSets/Code/Project/net-strack/build/CMakeFiles/net-strack.dir
+D:/Desktop/ResourcesSets/Code/Project/net-strack/build/CMakeFiles/edit_cache.dir
+D:/Desktop/ResourcesSets/Code/Project/net-strack/build/CMakeFiles/rebuild_cache.dir

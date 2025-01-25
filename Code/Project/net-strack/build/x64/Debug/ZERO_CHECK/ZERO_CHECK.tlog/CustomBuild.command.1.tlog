@@ -1,0 +1,10 @@
+^D:\DESKTOP\RESOURCESSETS\CODE\PROJECT\NET-STRACK\BUILD\CMAKEFILES\6A2F1AFE0E8C254BC9C8941447439D23\GENERATE.STAMP.RULE
+setlocal
+D:\CMake\bin\cmake.exe -SD:/Desktop/ResourcesSets/Code/Project/net-strack -BD:/Desktop/ResourcesSets/Code/Project/net-strack/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/Desktop/ResourcesSets/Code/Project/net-strack/build/net-strack.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

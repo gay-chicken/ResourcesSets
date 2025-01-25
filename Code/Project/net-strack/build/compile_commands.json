@@ -1,0 +1,26 @@
+[
+{
+  "directory": "D:/Desktop/ResourcesSets/Code/Project/net-strack/build",
+  "command": "D:\\MinGW\\bin\\gcc.exe  @CMakeFiles/net-strack.dir/includes_C.rsp -g -std=gnu2x -o CMakeFiles\\net-strack.dir\\src\\devices.c.obj -c D:\\Desktop\\ResourcesSets\\Code\\Project\\net-strack\\src\\devices.c",
+  "file": "D:/Desktop/ResourcesSets/Code/Project/net-strack/src/devices.c",
+  "output": "CMakeFiles/net-strack.dir/src/devices.c.obj"
+},
+{
+  "directory": "D:/Desktop/ResourcesSets/Code/Project/net-strack/build",
+  "command": "D:\\MinGW\\bin\\gcc.exe  @CMakeFiles/net-strack.dir/includes_C.rsp -g -std=gnu2x -o CMakeFiles\\net-strack.dir\\src\\main.c.obj -c D:\\Desktop\\ResourcesSets\\Code\\Project\\net-strack\\src\\main.c",
+  "file": "D:/Desktop/ResourcesSets/Code/Project/net-strack/src/main.c",
+  "output": "CMakeFiles/net-strack.dir/src/main.c.obj"
+},
+{
+  "directory": "D:/Desktop/ResourcesSets/Code/Project/net-strack/build",
+  "command": "D:\\MinGW\\bin\\gcc.exe  @CMakeFiles/net-strack.dir/includes_C.rsp -g -std=gnu2x -o CMakeFiles\\net-strack.dir\\src\\protocol.c.obj -c D:\\Desktop\\ResourcesSets\\Code\\Project\\net-strack\\src\\protocol.c",
+  "file": "D:/Desktop/ResourcesSets/Code/Project/net-strack/src/protocol.c",
+  "output": "CMakeFiles/net-strack.dir/src/protocol.c.obj"
+},
+{
+  "directory": "D:/Desktop/ResourcesSets/Code/Project/net-strack/build",
+  "command": "D:\\MinGW\\bin\\gcc.exe  @CMakeFiles/net-strack.dir/includes_C.rsp -g -std=gnu2x -o CMakeFiles\\net-strack.dir\\src\\stack.c.obj -c D:\\Desktop\\ResourcesSets\\Code\\Project\\net-strack\\src\\stack.c",
+  "file": "D:/Desktop/ResourcesSets/Code/Project/net-strack/src/stack.c",
+  "output": "CMakeFiles/net-strack.dir/src/stack.c.obj"
+}
+]

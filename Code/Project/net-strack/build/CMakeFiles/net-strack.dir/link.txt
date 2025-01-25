@@ -1,0 +1,3 @@
+D:\CMake\bin\cmake.exe -E rm -f CMakeFiles\net-strack.dir/objects.a
+D:\MinGW\bin\ar.exe qc CMakeFiles\net-strack.dir/objects.a @CMakeFiles\net-strack.dir\objects1.rsp
+D:\MinGW\bin\gcc.exe -g -Wl,--whole-archive CMakeFiles\net-strack.dir/objects.a -Wl,--no-whole-archive -o net-strack.exe -Wl,--out-implib,libnet-strack.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\net-strack.dir\linkLibs.rsp

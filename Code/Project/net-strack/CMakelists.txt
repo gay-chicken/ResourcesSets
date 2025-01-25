@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.20)
+project(net-strack C)
+
+set(CMAKE_C_STANDARD 23)
+set(ThirdParty_Dir ${PROJECT_SOURCE_DIR}/3rdparty)
+
+include_directories(
+    ${PROJECT_SOURCE_DIR}/include
+    ${ThirdParty_Dir}/npcap/Include
+)
+link_directories(
+    ${ThirdParty_Dir}/npcap/Lib/x64
+)
+
+aux_source_directory(${PROJECT_SOURCE_DIR}/src Srcs)
+add_executable(net-strack ${Srcs})
+
+target_link_libraries(net-strack Packet.lib wpcap.lib ws2_32)
+
+add_compile_options(-Werror -Wall -pedantic)

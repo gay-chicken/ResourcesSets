@@ -1,0 +1,10 @@
+^D:\DESKTOP\RESOURCESSETS\CODE\PROJECT\NET-STRACK\CMAKELISTS.TXT
+setlocal
+D:\CMake\bin\cmake.exe -SD:/Desktop/ResourcesSets/Code/Project/net-strack -BD:/Desktop/ResourcesSets/Code/Project/net-strack/build --check-stamp-file D:/Desktop/ResourcesSets/Code/Project/net-strack/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
