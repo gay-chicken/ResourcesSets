@@ -1,4 +1,5 @@
 #include "devices.h"
+#include "log.h"
 
 void devices_info()
 {
