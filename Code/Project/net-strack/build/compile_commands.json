@@ -19,6 +19,12 @@
 },
 {
   "directory": "D:/Desktop/ResourcesSets/Code/Project/net-strack/build",
+  "command": "D:\\MinGW\\bin\\gcc.exe  @CMakeFiles/net-strack.dir/includes_C.rsp -g -std=gnu2x -o CMakeFiles\\net-strack.dir\\src\\sock2.c.obj -c D:\\Desktop\\ResourcesSets\\Code\\Project\\net-strack\\src\\sock2.c",
+  "file": "D:/Desktop/ResourcesSets/Code/Project/net-strack/src/sock2.c",
+  "output": "CMakeFiles/net-strack.dir/src/sock2.c.obj"
+},
+{
+  "directory": "D:/Desktop/ResourcesSets/Code/Project/net-strack/build",
   "command": "D:\\MinGW\\bin\\gcc.exe  @CMakeFiles/net-strack.dir/includes_C.rsp -g -std=gnu2x -o CMakeFiles\\net-strack.dir\\src\\stack.c.obj -c D:\\Desktop\\ResourcesSets\\Code\\Project\\net-strack\\src\\stack.c",
   "file": "D:/Desktop/ResourcesSets/Code/Project/net-strack/src/stack.c",
   "output": "CMakeFiles/net-strack.dir/src/stack.c.obj"

@@ -4,10 +4,10 @@
 .extern func
 .extern funs
 
-call:
-    call func       # x * 2，返回结果在rax中
+call:               # 参数传递次序: rdi, rsi, rdx, rcx, r8, r9, 栈
+    call func       # 调用C函数计算x * 2，返回结果在rax中
 
-    mov %rax, %rdi  # 将C函数的返回结果作为参数传递给funs
-    call funs       # rdi + 1, 读取rdi参数，返回rax
+    mov %rax, %rdi  # 将rax的值赋给rdi作为funs的第一个参数传递
+    call funs       # funs中计算rdi + 1
 
     ret

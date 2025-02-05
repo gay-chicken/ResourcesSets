@@ -200,6 +200,30 @@ src/protocol.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\net-strack.dir\build.make CMakeFiles/net-strack.dir/src/protocol.c.s
 .PHONY : src/protocol.c.s
 
+src/sock2.obj: src/sock2.c.obj
+.PHONY : src/sock2.obj
+
+# target to build an object file
+src/sock2.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\net-strack.dir\build.make CMakeFiles/net-strack.dir/src/sock2.c.obj
+.PHONY : src/sock2.c.obj
+
+src/sock2.i: src/sock2.c.i
+.PHONY : src/sock2.i
+
+# target to preprocess a source file
+src/sock2.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\net-strack.dir\build.make CMakeFiles/net-strack.dir/src/sock2.c.i
+.PHONY : src/sock2.c.i
+
+src/sock2.s: src/sock2.c.s
+.PHONY : src/sock2.s
+
+# target to generate assembly for a file
+src/sock2.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\net-strack.dir\build.make CMakeFiles/net-strack.dir/src/sock2.c.s
+.PHONY : src/sock2.c.s
+
 src/stack.obj: src/stack.c.obj
 .PHONY : src/stack.obj
 
@@ -242,6 +266,9 @@ help:
 	@echo ... src/protocol.obj
 	@echo ... src/protocol.i
 	@echo ... src/protocol.s
+	@echo ... src/sock2.obj
+	@echo ... src/sock2.i
+	@echo ... src/sock2.s
 	@echo ... src/stack.obj
 	@echo ... src/stack.i
 	@echo ... src/stack.s

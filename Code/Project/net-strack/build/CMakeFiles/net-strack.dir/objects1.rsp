@@ -1,1 +1,1 @@
-"CMakeFiles/net-strack.dir/src/devices.c.obj" "CMakeFiles/net-strack.dir/src/main.c.obj" "CMakeFiles/net-strack.dir/src/protocol.c.obj" "CMakeFiles/net-strack.dir/src/stack.c.obj"
+"CMakeFiles/net-strack.dir/src/devices.c.obj" "CMakeFiles/net-strack.dir/src/main.c.obj" "CMakeFiles/net-strack.dir/src/protocol.c.obj" "CMakeFiles/net-strack.dir/src/sock2.c.obj" "CMakeFiles/net-strack.dir/src/stack.c.obj"

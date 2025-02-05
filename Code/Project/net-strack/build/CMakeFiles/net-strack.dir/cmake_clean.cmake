@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/net-strack.dir/src/main.c.obj.d"
   "CMakeFiles/net-strack.dir/src/protocol.c.obj"
   "CMakeFiles/net-strack.dir/src/protocol.c.obj.d"
+  "CMakeFiles/net-strack.dir/src/sock2.c.obj"
+  "CMakeFiles/net-strack.dir/src/sock2.c.obj.d"
   "CMakeFiles/net-strack.dir/src/stack.c.obj"
   "CMakeFiles/net-strack.dir/src/stack.c.obj.d"
   "libnet-strack.dll.a"
