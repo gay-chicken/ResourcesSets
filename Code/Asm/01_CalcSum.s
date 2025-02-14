@@ -7,7 +7,7 @@
     返回值：a + b + c
 
     ps1: Linux/Unix (System V ABI)前6个整数参数传递为%rdi, %rsi, %rdx, %rcx, %r8, %r9
-    ps2: Windows x64 ABI前4个整数参数传递为%rcx, %rdx, %r8, %r9
+    ps2: Windows x64 ABI前6个整数参数传递为%rcx, %rdx, %r8, %r9, %r10, %r11
 */
 CalcSum_:
 

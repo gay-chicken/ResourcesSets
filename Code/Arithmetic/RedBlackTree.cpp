@@ -1,9 +1,21 @@
-#define RED false
-#define BLACK true
+#include <iostream>
 
 struct Node {
     int value;
-    bool color; // red(false) or black(true)
+    bool color;
     Node* left;
     Node* right;
+
+    enum {
+        RED = true,
+        BLACK = false
+    };
 };
+
+
+int main() {
+    Node node;
+    node.color = Node::RED;
+
+    std::cout << node.color << std::endl;
+}

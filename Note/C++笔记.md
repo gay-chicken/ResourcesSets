@@ -1175,3 +1175,62 @@ int main()
 
 
 #### C++20 三路运算符<=>
+
+
+
+## 无锁算法和结构，CAS原子操作
+
+**CAS原子操作**
+
+```C++
+bool compare_exchange_weak(); // 可能出现伪失败
+bool compare_exchange_strong();
+```
+
+**乘法计算**
+
+```C++
+int fetch_multiply(std::atomic<int> &value, int multiplier) {
+	int oldValue = value.load();
+	int desired;
+	do {
+		desired = oldValue * multipiler;
+	} while(!value.compare_exchange_strong(oldValue, desired));
+	return oldValue;
+}
+```
+
+在该函数中，如果``oldValue == value``说明``value``没有被修改过，可以将``value``更新为``desired``；如果``oldValue != value``，令``oldValue``的值更新为``value``当前值，重新进行乘法计算。
+
+**无锁堆栈**
+
+```C++
+// push
+std::shared_ptr<Node> newNode = std::make_shared<Node>(val);
+newNode->next = head.load();
+while (!head.compare_exchange_strong(newNode->next, newNode));
+
+// pop
+std::shared_ptr<Node> oldHead = head.load();
+while (oldHead && !head.compare_exchange_strong(oldHead, oldHead->next));
+```
+
+
+
+## 其他
+
+合取和析取
+
+std::disjunction: 使用 std::disjunction 检查类型
+
+concept和requires
+
+ios::sync_with_stdio(false)
+
+CAS(Compare And Swap): 
+
+````C++
+std::atomic<int> value;
+int tmp = value.load();  // ?
+````
+
