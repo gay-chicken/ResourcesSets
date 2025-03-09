@@ -4,12 +4,10 @@
 using namespace std;
 
 int main() {
-    deque<int> deqA = {1, 2, 3, 4, 5};
-    deqA.push_front(0);
-    deqA.push_back(-1);
+    deque<int> deq;
 
-    for (auto &it : deqA)
-        cout << it << " ";
-    cout << endl;
+    for (int i = 0; i < 10; i++) deq.push_back(i);
+
+    cout << deq.at(0) << endl;
 
 }

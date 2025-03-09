@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>DrawBoard.qml</file>
+        <file>BaseCanvas.qml</file>
+        <file>TextShadow.qml</file>
+        <file>DrawImage.qml</file>
+        <file>SaveDrawBoard.qml</file>
+    </qresource>
+    <qresource prefix="/image">
+        <file>image.png</file>
+        <file>paint.png</file>
+    </qresource>
+</RCC>

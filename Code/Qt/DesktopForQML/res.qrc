@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/qml"/>
+    <qresource prefix="/state">
+        <file>SimpleState.qml</file>
+    </qresource>
+    <qresource prefix="/image">
+        <file>new-file.png</file>
+        <file>file-open.png</file>
+        <file>saveas.png</file>
+        <file>save.png</file>
+        <file>exit.png</file>
+        <file>星球行走.jpg</file>
+    </qresource>
+    <qresource prefix="/animator"/>
+</RCC>

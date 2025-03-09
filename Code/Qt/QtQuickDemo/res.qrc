@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/image"/>
+    <qresource prefix="/">
+        <file>circle.png</file>
+    </qresource>
+</RCC>

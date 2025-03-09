@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/image">
+        <file>circle.png</file>
+    </qresource>
+    <qresource prefix="/qml">
+        <file>RectBody.qml</file>
+    </qresource>
+    <qresource prefix="/animation">
+        <file>behavior.qml</file>
+    </qresource>
+</RCC>

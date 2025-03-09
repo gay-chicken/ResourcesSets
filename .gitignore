@@ -1,4 +1,9 @@
-.vscode/
+# 忽略文件
 *.exe
 *.mp4
-Code\OpenCV\out
+
+# 忽略文件夹
+**/build/
+**/out/
+**/output/
+**/.vscode/
