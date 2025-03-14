@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>DataLoad.qml</file>
+        <file>TextShow.qml</file>
+        <file>DrawShow.qml</file>
+    </qresource>
+</RCC>

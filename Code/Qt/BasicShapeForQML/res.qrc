@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>ShapeRect.qml</file>
+    </qresource>
+</RCC>

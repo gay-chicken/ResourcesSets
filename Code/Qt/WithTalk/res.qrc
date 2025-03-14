@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>LoginWindow.qml</file>
+        <file>MasterWindow.qml</file>
+        <file>ChatWindow.qml</file>
+    </qresource>
+    <qresource prefix="/image">
+        <file>close.png</file>
+        <file>setting.png</file>
+        <file>海绵宝宝.jpg</file>
+        <file>chat.png</file>
+        <file>fixed.png</file>
+        <file>fix.png</file>
+        <file>minimumed.png</file>
+        <file>windowing.png</file>
+        <file>fill_screen.png</file>
+    </qresource>
+</RCC>

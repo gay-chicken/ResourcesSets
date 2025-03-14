@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>VideoContainer.qml</file>
+        <file>ToolBar.qml</file>
+        <file>StatusRect.qml</file>
+    </qresource>
+</RCC>
